@@ -1,2 +1,2 @@
 [build]
-nixPackages = ["php84"]
+nixPackages = ["php84", "php84Extensions.pdo", "php84Extensions.pdo_mysql", "php84Extensions.mbstring", "php84Extensions.tokenizer", "php84Extensions.xml", "php84Extensions.ctype", "php84Extensions.fileinfo", "php84Extensions.openssl", "php84Extensions.curl", "php84Extensions.zip"]
