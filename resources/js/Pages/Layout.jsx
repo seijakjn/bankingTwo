@@ -3,15 +3,28 @@ import { Link, usePage, router } from "@inertiajs/react";
 import { Home, CreditCard, ArrowLeftRight, Landmark, LogOut } from "lucide-react";
 
 export default function Layout({ children }) {
-    const { url } = usePage();
+    const { url, props } = usePage();
     const { signOut } = useAuth();
+    const userRole = props.auth?.user?.role || 'user';
     
-    const navItems = [
-        { name: "Dashboard", href: "/dashboard", icon: Home },
-        { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
-        { name: "Cards", href: "/cards", icon: CreditCard },
-        { name: "Loans", href: "/loans", icon: Landmark },
-    ];
+    let navItems = [];
+    if (userRole === 'user') {
+        navItems = [
+            { name: "Dashboard", href: "/dashboard", icon: Home },
+            { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
+            { name: "Cards", href: "/cards", icon: CreditCard },
+            { name: "Loans", href: "/loans", icon: Landmark },
+            { name: "Profile", href: "/profile/addresses", icon: Home }, // Add Profile
+        ];
+    } else if (userRole === 'admin') {
+        navItems = [
+            { name: "Admin Dashboard", href: "/admin/dashboard", icon: Home },
+        ];
+    } else if (userRole === 'branch') {
+        navItems = [
+            { name: "Branch Dashboard", href: "/branch/dashboard", icon: Home },
+        ];
+    }
 
     const handleSignOut = () => {
         signOut().then(() => {
@@ -48,8 +61,23 @@ export default function Layout({ children }) {
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Header */}
-                <header className="h-20 border-b border-gray-200 bg-white flex items-center justify-end px-10 shadow-sm z-0 relative">
-                    <UserButton afterSignOutUrl="/" />
+                <header className="h-20 border-b border-gray-200 bg-white flex flex-col justify-center px-10 shadow-sm z-0 relative">
+                    {props.auth?.user?.is_frozen && (
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-red-500 animate-pulse"></div>
+                    )}
+                    <div className="flex items-center justify-between">
+                        {props.auth?.user?.is_frozen && (
+                            <div className="flex items-center space-x-2 text-red-600 font-black text-[10px] uppercase tracking-widest bg-red-50 px-3 py-1 rounded-full border border-red-100">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                </span>
+                                <span>Account Frozen by Administration</span>
+                            </div>
+                        )}
+                        <div className="flex-1"></div>
+                        <UserButton afterSignOutUrl="/" />
+                    </div>
                 </header>
                 {/* Content */}
                 <div className="p-10 flex-1 overflow-auto">

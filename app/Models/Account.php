@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Interest;
 
 class Account extends Model
 {
@@ -16,5 +17,10 @@ class Account extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function interests()
+    {
+        return $this->hasMany(Interest::class);
     }
 }
