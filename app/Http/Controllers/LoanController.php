@@ -27,7 +27,9 @@ class LoanController extends Controller
 
     public function apply(Request $request)
     {
-        if ($request->user()->is_frozen) {
+        $user = $request->user();
+        
+        if ($user->is_frozen) {
             return back()->withErrors(['error' => 'Your account is frozen.']);
         }
 
@@ -42,6 +44,8 @@ class LoanController extends Controller
             'notes'         => 'nullable|string|max:1000',
             'branch_id'     => 'required|exists:users,id',
         ]);
+
+        $path = $request->file('proof_of_income')->store('proofs', 'public');
 
         $user->loans()->create([
             'branch_id'          => $request->branch_id,
