@@ -20,7 +20,8 @@ class LoanController extends Controller
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'secondary_email' => $user->secondary_email,
-            ]
+            ],
+            'branches' => \App\Models\User::where('role', 'branch')->get(['id', 'name'])
         ]);
     }
 
@@ -39,16 +40,11 @@ class LoanController extends Controller
             'contact_email' => 'required|email',
             'proof_of_income' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'notes'         => 'nullable|string|max:1000',
+            'branch_id'     => 'required|exists:users,id',
         ]);
 
-        $user = $request->user();
-        $branch = \App\Models\User::where('role', 'branch')->first();
-
-        // Handle file upload
-        $path = $request->file('proof_of_income')->store('loan_documents', 'public');
-
         $user->loans()->create([
-            'branch_id'          => $branch ? $branch->id : null,
+            'branch_id'          => $request->branch_id,
             'purpose'            => $request->purpose,
             'address_id'         => $request->address_id,
             'contact_phone'      => $request->contact_phone,
