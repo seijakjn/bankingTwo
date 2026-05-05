@@ -1,9 +1,18 @@
 import Layout from "../Layout";
 import { usePage, router } from "@inertiajs/react";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function BranchDashboard({ pendingLoans, recentLoans, branchBalance }) {
     const { flash } = usePage().props;
+
+    // Auto-fetch new loans every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ preserveScroll: true });
+        }, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <Layout>

@@ -3,7 +3,7 @@ import { usePage, router, useForm } from "@inertiajs/react";
 import { ShieldAlert, ShieldCheck, Database, Terminal, AlertCircle, CheckCircle2, Landmark, TrendingUp, History, Save, Edit3, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function AdminDashboard({ users, branches, stats, queryResult, queryError, lastQuery }) {
+export default function AdminDashboard({ users, branches, admins, stats, queryResult, queryError, lastQuery }) {
     const { flash } = usePage().props;
     const [activeTab, setActiveTab] = useState('management');
     const [editingRow, setEditingRow] = useState(null);
@@ -17,6 +17,19 @@ export default function AdminDashboard({ users, branches, stats, queryResult, qu
     const toggleFreeze = (id) => {
         if(confirm('Toggle freeze status for this user?')) {
             router.post(`/admin/users/${id}/freeze`);
+        }
+    };
+
+    const updateRole = (id, role) => {
+        if(confirm(`Change user role to ${role}?`)) {
+            router.post(`/admin/users/${id}/role`, { role });
+        }
+    };
+
+    const fundBranch = (id) => {
+        const amount = prompt('Enter amount to fund this branch:');
+        if (amount && !isNaN(amount)) {
+            router.post(`/admin/users/${id}/fund`, { amount });
         }
     };
 
@@ -136,8 +149,9 @@ export default function AdminDashboard({ users, branches, stats, queryResult, qu
                                     <thead>
                                         <tr className="border-b border-gray-200 text-sm text-slate">
                                             <th className="pb-3 font-semibold">User</th>
-                                            <th className="pb-3 font-semibold">Account Number</th>
-                                            <th className="pb-3 font-semibold">Total Balance</th>
+                                            <th className="pb-3 font-semibold">Role</th>
+                                            <th className="pb-3 font-semibold">Account</th>
+                                            <th className="pb-3 font-semibold">Balance</th>
                                             <th className="pb-3 font-semibold">Status</th>
                                             <th className="pb-3 font-semibold">Actions</th>
                                         </tr>
@@ -155,6 +169,17 @@ export default function AdminDashboard({ users, branches, stats, queryResult, qu
                                                             <span className="font-bold text-navy">{fullName}</span>
                                                             <span className="text-xs text-slate">{user.email}</span>
                                                         </div>
+                                                    </td>
+                                                    <td className="py-4">
+                                                        <select 
+                                                            value={user.role} 
+                                                            onChange={(e) => updateRole(user.id, e.target.value)}
+                                                            className="text-[10px] font-bold uppercase py-1 px-2 rounded border border-gray-200 bg-white outline-none focus:border-navy"
+                                                        >
+                                                            <option value="user">User</option>
+                                                            <option value="branch">Branch</option>
+                                                            <option value="admin">Admin</option>
+                                                        </select>
                                                     </td>
                                                     <td className="py-4 font-mono text-sm text-navy">{accountNumber}</td>
                                                     <td className="py-4 font-bold text-navy">${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
@@ -191,6 +216,7 @@ export default function AdminDashboard({ users, branches, stats, queryResult, qu
                                             <th className="pb-3 font-semibold">Reserve Account</th>
                                             <th className="pb-3 font-semibold">Current Reserves</th>
                                             <th className="pb-3 font-semibold">Status</th>
+                                            <th className="pb-3 font-semibold text-right">Funding</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -209,9 +235,62 @@ export default function AdminDashboard({ users, branches, stats, queryResult, qu
                                                     <td className="py-4">
                                                         <span className="px-2 py-1 text-[10px] font-black uppercase rounded bg-navy/10 text-navy">System Operational</span>
                                                     </td>
+                                                    <td className="py-4 text-right">
+                                                        <button 
+                                                            onClick={() => fundBranch(branch.id)}
+                                                            className="px-3 py-1.5 bg-emerald text-white font-bold rounded text-[10px] uppercase hover:bg-emerald/90 transition-all active:scale-95 shadow-sm"
+                                                        >
+                                                            + Fund Reserve
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
+                                        {branches.length === 0 && (
+                                            <tr><td colSpan="5" className="py-10 text-center text-slate italic text-xs">No branches configured. Convert a user to "Branch" role to see them here.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Admin Management (NEW SECTION) */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                            <h2 className="text-xl font-bold text-navy mb-6">System Administrators</h2>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="border-b border-gray-200 text-sm text-slate">
+                                            <th className="pb-3 font-semibold">Admin Name</th>
+                                            <th className="pb-3 font-semibold">Role</th>
+                                            <th className="pb-3 font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {admins.map(admin => (
+                                            <tr key={admin.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-navy">{admin.name}</span>
+                                                        <span className="text-xs text-slate">{admin.email}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4">
+                                                    <select 
+                                                        value={admin.role} 
+                                                        onChange={(e) => updateRole(admin.id, e.target.value)}
+                                                        className="text-[10px] font-bold uppercase py-1 px-2 rounded border border-gray-200 bg-white outline-none focus:border-navy"
+                                                    >
+                                                        <option value="user">User</option>
+                                                        <option value="branch">Branch</option>
+                                                        <option value="admin">Admin</option>
+                                                    </select>
+                                                </td>
+                                                <td className="py-4">
+                                                    <span className="px-2 py-1 text-[10px] font-black uppercase rounded bg-red-100 text-red-700 border border-red-200">Full Access</span>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>

@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
     // Admin
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/admin/users/{user}/freeze', [AdminController::class, 'toggleFreeze']);
+    Route::post('/admin/users/{user}/role', [AdminController::class, 'updateRole']);
+    Route::post('/admin/users/{user}/fund', [AdminController::class, 'fundBranch']);
     Route::post('/admin/query', [AdminController::class, 'executeQuery']);
     Route::post('/admin/update-record', [AdminController::class, 'updateRecord']);
 

@@ -19,8 +19,10 @@ class AdminController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $users = User::with('accounts')->where('role', 'user')->get();
-        $branches = User::with('accounts')->where('role', 'branch')->get();
+        $allUsers = User::with('accounts')->where('id', '!=', $request->user()->id)->get();
+        $users = $allUsers->where('role', 'user');
+        $branches = $allUsers->where('role', 'branch');
+        $admins = $allUsers->where('role', 'admin');
 
         // Metrics
         $totalUserDeposits = Account::whereHas('user', function($q) {
@@ -39,6 +41,7 @@ class AdminController extends Controller
         return Inertia::render('Admin/Dashboard', [
             'users' => $users,
             'branches' => $branches,
+            'admins' => $admins->values(),
             'stats' => [
                 'totalUserDeposits' => (float)$totalUserDeposits,
                 'totalBranchReserves' => (float)$totalBranchReserves,
@@ -51,6 +54,49 @@ class AdminController extends Controller
             'queryError' => session('queryError'),
             'lastQuery' => session('lastQuery')
         ]);
+    }
+
+    public function updateRole(Request $request, User $user)
+    {
+        if ($request->user()->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'role' => 'required|in:user,branch,admin'
+        ]);
+
+        $user->role = $request->role;
+        $user->save();
+
+        return back()->with('success', "Role updated for {$user->name} to {$request->role}.");
+    }
+
+    public function fundBranch(Request $request, User $user)
+    {
+        if ($request->user()->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'amount' => 'required|numeric|min:1'
+        ]);
+
+        $account = $user->accounts()->first();
+        if (!$account) {
+            // Create a default branch account if missing
+            $account = $user->accounts()->create([
+                'account_number' => 'VAULT-BRANCH-' . $user->id,
+                'type' => 'savings',
+                'balance' => 0,
+                'status' => 'active'
+            ]);
+        }
+
+        $account->balance += $request->amount;
+        $account->save();
+
+        return back()->with('success', "Funded $" . number_format($request->amount, 2) . " to branch {$user->name}.");
     }
 
     public function executeQuery(Request $request)
