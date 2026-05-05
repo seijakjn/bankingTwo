@@ -15,7 +15,8 @@ class BranchController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $branchId = $request->user()->id;
+        // Master Branch ID logic: All branch staff manage the same central branch (ID 6)
+        $branchId = 6; 
 
         $pendingLoans = Loan::with(['user', 'address'])
             ->where('branch_id', $branchId)
@@ -27,7 +28,8 @@ class BranchController extends Controller
             ->whereIn('status', ['approved', 'rejected'])
             ->latest('reviewed_at')->take(10)->get();
 
-        $branchAccount = $request->user()->accounts()->first();
+        $masterBranchUser = \App\Models\User::find(6);
+        $branchAccount = $masterBranchUser ? $masterBranchUser->accounts()->first() : null;
 
         return Inertia::render('Branch/Dashboard', [
             'pendingLoans'  => $pendingLoans,
@@ -38,7 +40,7 @@ class BranchController extends Controller
 
     public function viewApplication(Request $request, Loan $loan)
     {
-        if ($request->user()->role !== 'branch' || $loan->branch_id !== $request->user()->id) {
+        if ($request->user()->role !== 'branch' || $loan->branch_id !== 6) {
             abort(403, 'Unauthorized');
         }
 
@@ -51,7 +53,7 @@ class BranchController extends Controller
 
     public function approveLoan(Request $request, Loan $loan)
     {
-        if ($request->user()->role !== 'branch' || $loan->branch_id !== $request->user()->id) {
+        if ($request->user()->role !== 'branch' || $loan->branch_id !== 6) {
             abort(403, 'Unauthorized');
         }
 
@@ -59,7 +61,8 @@ class BranchController extends Controller
             return back()->withErrors(['error' => 'Loan is already processed.']);
         }
 
-        $branchAccount = $request->user()->accounts()->first();
+        $masterBranchUser = \App\Models\User::find(6);
+        $branchAccount = $masterBranchUser ? $masterBranchUser->accounts()->first() : null;
         $userAccount = $loan->user->accounts()->first();
 
         if (!$branchAccount || $branchAccount->balance < $loan->amount) {
@@ -103,7 +106,7 @@ class BranchController extends Controller
 
     public function rejectLoan(Request $request, Loan $loan)
     {
-        if ($request->user()->role !== 'branch' || $loan->branch_id !== $request->user()->id) {
+        if ($request->user()->role !== 'branch' || $loan->branch_id !== 6) {
             abort(403, 'Unauthorized');
         }
 

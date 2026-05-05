@@ -42,13 +42,12 @@ class LoanController extends Controller
             'contact_email' => 'required|email',
             'proof_of_income' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'notes'         => 'nullable|string|max:1000',
-            'branch_id'     => 'required|exists:users,id',
         ]);
 
         $path = $request->file('proof_of_income')->store('proofs', 'public');
 
         $user->loans()->create([
-            'branch_id'          => $request->branch_id,
+            'branch_id'          => 6, // Force to Master Branch
             'purpose'            => $request->purpose,
             'address_id'         => $request->address_id,
             'contact_phone'      => $request->contact_phone,

@@ -29,7 +29,6 @@ export default function Loans({ loans, addresses, userContact, branches }) {
         contact_email: userContact?.email || '',
         notes: '',
         proof_of_income: null,
-        branch_id: branches[0]?.id || '',
     });
 
     const monthly = calcMonthly(form.data.amount, parseInt(form.data.term_months));
@@ -111,13 +110,9 @@ export default function Loans({ loans, addresses, userContact, branches }) {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-navy mb-2">Servicing Branch</label>
-                                        <select value={form.data.branch_id} onChange={e => form.setData('branch_id', e.target.value)}
-                                            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-emerald bg-white">
-                                            <option value="" disabled>— Select a Branch —</option>
-                                            {branches.map(b => (
-                                                <option key={b.id} value={b.id}>{b.name}</option>
-                                            ))}
-                                        </select>
+                                        <div className="w-full px-4 py-3 rounded-lg border border-gray-100 bg-slate-50 text-slate-500 font-bold text-sm">
+                                            Vault Financial — Main Branch
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-navy mb-2">Loan Amount ($)</label>
