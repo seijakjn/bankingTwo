@@ -39,8 +39,8 @@ class AdminController extends Controller
         $totalInterestAccrued = Interest::sum('amount');
 
         return Inertia::render('Admin/Dashboard', [
-            'users' => $users,
-            'branches' => $branches,
+            'users' => $users->values(),
+            'branches' => $branches->values(),
             'admins' => $admins->values(),
             'stats' => [
                 'totalUserDeposits' => (float)$totalUserDeposits,
